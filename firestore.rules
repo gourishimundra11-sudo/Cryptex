@@ -1,0 +1,141 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Health check collection for connection testing
+    match /test/{testId} {
+      allow get: if true;
+    }
+
+    // Core validation primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email == 'gourishimundra11@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'email'])
+        && data.keys().hasOnly(['userId', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLoginAt'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.email is string && data.email.size() <= 256
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 2048))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64))
+        && (!('lastLoginAt' in data) || (data.lastLoginAt is string && data.lastLoginAt.size() <= 64));
+    }
+
+    function isValidTransformation(data) {
+      return data.keys().hasAll(['id', 'userId', 'algorithmId', 'algorithmName', 'ciphertext', 'inputLength', 'outputLength'])
+        && data.keys().hasOnly(['id', 'userId', 'userEmail', 'userDisplayName', 'algorithmId', 'algorithmName', 'parametersSummary', 'plaintext', 'plaintextSnippet', 'ciphertext', 'inputLength', 'outputLength', 'documentName', 'isAiConverted', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 256))
+        && (!('userDisplayName' in data) || (data.userDisplayName is string && data.userDisplayName.size() <= 100))
+        && data.algorithmId is string && data.algorithmId.size() <= 50
+        && data.algorithmName is string && data.algorithmName.size() <= 100
+        && (!('plaintext' in data) || (data.plaintext is string && data.plaintext.size() <= 100000))
+        && (!('plaintextSnippet' in data) || (data.plaintextSnippet is string && data.plaintextSnippet.size() <= 500))
+        && data.ciphertext is string && data.ciphertext.size() <= 100000
+        && data.inputLength is number && data.inputLength >= 0
+        && data.outputLength is number && data.outputLength >= 0
+        && (!('parametersSummary' in data) || (data.parametersSummary is string && data.parametersSummary.size() <= 256))
+        && (!('documentName' in data) || (data.documentName is string && data.documentName.size() <= 256))
+        && (!('isAiConverted' in data) || data.isAiConverted is bool)
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['id', 'userId', 'algorithmId', 'algorithmName', 'ciphertext', 'inputLength', 'outputLength'])
+        && data.keys().hasOnly(['id', 'userId', 'userEmail', 'userDisplayName', 'eventType', 'algorithmId', 'algorithmName', 'parametersSummary', 'plaintext', 'plaintextSnippet', 'ciphertext', 'inputLength', 'outputLength', 'documentName', 'isAiConverted', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 256))
+        && (!('userDisplayName' in data) || (data.userDisplayName is string && data.userDisplayName.size() <= 100))
+        && (!('eventType' in data) || (data.eventType is string && data.eventType.size() <= 64))
+        && data.algorithmId is string && data.algorithmId.size() <= 50
+        && data.algorithmName is string && data.algorithmName.size() <= 100
+        && (!('parametersSummary' in data) || (data.parametersSummary is string && data.parametersSummary.size() <= 256))
+        && (!('plaintext' in data) || (data.plaintext is string && data.plaintext.size() <= 100000))
+        && (!('plaintextSnippet' in data) || (data.plaintextSnippet is string && data.plaintextSnippet.size() <= 500))
+        && data.ciphertext is string && data.ciphertext.size() <= 100000
+        && data.inputLength is number && data.inputLength >= 0
+        && data.outputLength is number && data.outputLength >= 0
+        && (!('documentName' in data) || (data.documentName is string && data.documentName.size() <= 256))
+        && (!('isAiConverted' in data) || data.isAiConverted is bool)
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    // Central Audit Logs Collection (accessible to admin gourishimundra11@gmail.com)
+    match /audit_logs/{auditId} {
+      allow get, list: if isAdmin();
+      allow create: if isSignedIn()
+        && isValidId(auditId)
+        && isValidAuditLog(incoming())
+        && incoming().userId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(auditId);
+    }
+
+    // Collection Group rule for Admin audit search across all users' transformations
+    match /{path=**}/transformations/{transformationId} {
+      allow read: if isAdmin();
+    }
+
+    // User Profile Documents
+    match /users/{userId} {
+      allow get: if (isSignedIn() && request.auth.uid == userId && isValidId(userId)) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && isValidId(userId)
+        && isValidUser(incoming())
+        && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && isValidId(userId)
+        && isValidUser(incoming())
+        && incoming().userId == existing().userId
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'lastLoginAt']);
+      allow delete: if false;
+
+      // User Transformations Subcollection
+      match /transformations/{transformationId} {
+        allow get, list: if (isSignedIn() && request.auth.uid == userId && isValidId(userId)) || isAdmin();
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && isValidId(userId)
+          && isValidId(transformationId)
+          && isValidTransformation(incoming())
+          && incoming().userId == request.auth.uid;
+        allow delete: if (isSignedIn()
+          && request.auth.uid == userId
+          && isValidId(userId)
+          && isValidId(transformationId)) || isAdmin();
+        allow update: if false;
+      }
+    }
+  }
+}

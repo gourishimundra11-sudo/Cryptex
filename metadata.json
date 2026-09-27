@@ -1,0 +1,8 @@
+{
+  "name": "Remix CRYPTEX ",
+  "description": "An educational cryptography playground transforming plain text to cipher text using classical cryptographic methods with interactive visualizations and crypto lab.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile record for authenticated CRYPTEX account holders.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Authentication UID.",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's public display name.",
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "User profile avatar image URL.",
+          "maxLength": 2048
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account initialization timestamp."
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Most recent authentication timestamp."
+        }
+      },
+      "required": ["userId", "email"]
+    },
+    "Transformation": {
+      "title": "Transformation",
+      "description": "A saved cryptographic transformation record (plaintext to ciphertext conversion).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transformation.",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner UID.",
+          "maxLength": 128
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email address of the user who performed the conversion.",
+          "maxLength": 256
+        },
+        "userDisplayName": {
+          "type": "string",
+          "description": "Display name of the user who performed the conversion.",
+          "maxLength": 100
+        },
+        "algorithmId": {
+          "type": "string",
+          "description": "Cipher algorithm identifier (e.g., caesar, vigenere, playfair).",
+          "maxLength": 50
+        },
+        "algorithmName": {
+          "type": "string",
+          "description": "Human-readable name of the cipher algorithm.",
+          "maxLength": 100
+        },
+        "parametersSummary": {
+          "type": "string",
+          "description": "Summary of parameters used (e.g. Shift = 3, Key = LEMON).",
+          "maxLength": 256
+        },
+        "plaintext": {
+          "type": "string",
+          "description": "Full plain text message entered by the user.",
+          "maxLength": 100000
+        },
+        "plaintextSnippet": {
+          "type": "string",
+          "description": "Snippet of original plain text.",
+          "maxLength": 500
+        },
+        "ciphertext": {
+          "type": "string",
+          "description": "Generated encrypted cipher text.",
+          "maxLength": 100000
+        },
+        "inputLength": {
+          "type": "number",
+          "description": "Length of input plaintext."
+        },
+        "outputLength": {
+          "type": "number",
+          "description": "Length of resulting ciphertext."
+        },
+        "documentName": {
+          "type": "string",
+          "description": "Name of uploaded document if applicable.",
+          "maxLength": 256
+        },
+        "isAiConverted": {
+          "type": "boolean",
+          "description": "Whether the transformation was performed by AI."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of transformation."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "algorithmId",
+        "algorithmName",
+        "ciphertext",
+        "inputLength",
+        "outputLength"
+      ]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Central audit log entry recording plain text search/entry, parameters, and generated cipher output across the application.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the audit log record.",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "User UID who generated this entry.",
+          "maxLength": 128
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "maxLength": 256
+        },
+        "userDisplayName": {
+          "type": "string",
+          "description": "Display name of the user.",
+          "maxLength": 100
+        },
+        "eventType": {
+          "type": "string",
+          "description": "Type of event (conversion, document_upload, ai_conversion).",
+          "maxLength": 64
+        },
+        "algorithmId": {
+          "type": "string",
+          "description": "Cipher algorithm identifier used.",
+          "maxLength": 50
+        },
+        "algorithmName": {
+          "type": "string",
+          "description": "Algorithm display name.",
+          "maxLength": 100
+        },
+        "parametersSummary": {
+          "type": "string",
+          "description": "Cipher parameters used for transformation.",
+          "maxLength": 256
+        },
+        "plaintext": {
+          "type": "string",
+          "description": "Original plain text entered or searched by user.",
+          "maxLength": 100000
+        },
+        "plaintextSnippet": {
+          "type": "string",
+          "description": "Brief preview of input text.",
+          "maxLength": 500
+        },
+        "ciphertext": {
+          "type": "string",
+          "description": "Resulting cipher text generated.",
+          "maxLength": 100000
+        },
+        "inputLength": {
+          "type": "number",
+          "description": "Length of input plaintext."
+        },
+        "outputLength": {
+          "type": "number",
+          "description": "Length of resulting ciphertext."
+        },
+        "documentName": {
+          "type": "string",
+          "description": "Document name if uploaded.",
+          "maxLength": 256
+        },
+        "isAiConverted": {
+          "type": "boolean",
+          "description": "Whether AI was used."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this conversion was logged."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "algorithmId",
+        "algorithmName",
+        "ciphertext",
+        "inputLength",
+        "outputLength"
+      ]
+    }
+  },
+  "firestore": {
+    "/audit_logs/{auditId}": {
+      "schema": {
+        "$ref": "#/entities/AuditLog"
+      },
+      "description": "Central collection recording every plain text transformation, search, and output for admin auditing."
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user account profile information."
+    },
+    "/users/{userId}/transformations/{transformationId}": {
+      "schema": {
+        "$ref": "#/entities/Transformation"
+      },
+      "description": "Stores encrypted transformation audit history items per user."
+    },
+    "/test/{testId}": {
+      "schema": "object",
+      "description": "Health check connection test collection."
+    }
+  }
+}

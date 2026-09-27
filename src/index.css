@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #05070d;
+    --bg-surface: #0a0e1a;
+    --bg-surface-elevated: #101626;
+    --color-primary: #00c8ff;
+    --color-secondary: #536dff;
+    --color-text: #f5f7fa;
+    --color-muted: #8b95a7;
+    --border-subtle: rgba(0, 200, 255, 0.12);
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--color-text);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Syne', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Very subtle background grid */
+.subtle-grid {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 200, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 200, 255, 0.025) 1px, transparent 1px);
+}
+
+/* Animated Border Line for AI input */
+@keyframes spin-gradient {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-gradient 8s linear infinite;
+}
+
+.animate-spin-active {
+  animation: spin-gradient 4s linear infinite;
+}
+
+/* Flowing data line animation */
+@keyframes flow-line {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.animate-flow-stream {
+  background-size: 200% 200%;
+  animation: flow-line 2.5s linear infinite;
+}
+
+/* Subtle pulse glow */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
+/* Custom cyber scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #05070d;
+}
+::-webkit-scrollbar-thumb {
+  background: #151e33;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 200, 255, 0.15);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00c8ff;
+}
+
+/* Glowing utilities */
+.glow-cyan-sm {
+  box-shadow: 0 0 15px -2px rgba(0, 200, 255, 0.25);
+}
+
+.glow-cyan-md {
+  box-shadow: 0 0 25px -4px rgba(0, 200, 255, 0.35);
+}
+
+.glow-cyan-lg {
+  box-shadow: 0 0 45px -5px rgba(0, 200, 255, 0.4);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 200, 255, 0.5);
+}
+
